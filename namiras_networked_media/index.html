@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>MOOD PORTAL</title>
+  <link href='http://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <script type="text/javascript" src="http://connect.soundcloud.com/sdk.js"></script>
+  <script type="text/javascript">
+  //font
+  WebFontConfig = {
+    google: { families: [ 'Lato::latin' ] }
+  };
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+  })();
+  </script>
+  
+  <script id="vs" type="x-shader/x-vertex">
+  // vertex shader
+			attribute vec3 position;
+
+			void main() {
+				gl_Position = vec4( position, 1.0 );
+			}
+	</script>
+
+	<script id="fs" type="x-shader/x-fragment">
+	//fragment shader
+			uniform float time;
+			uniform vec2 resolution;
+			uniform vec3 color;
+
+			void main( void ) {
+			  vec2 uv = vec2(gl_FragCoord.x / resolution.x, gl_FragCoord.y / resolution.y);
+			  float r = cos(((time / 5.0) + uv.x) * 2.0) * 0.5 + 0.7;
+			  float g = cos(((time / 12.0) + uv.x) * 4.0) * 0.5 + 0.5;
+			  float b = cos(((time / 5.0) + uv.x) * 3.0) * 0.5 + 0.7;
+			 
+			  gl_FragColor = vec4( r/1.5 * color.r, g/2.0 * color.g, b/4.0 * color.b, 0.0 );
+			  
+			}
+	</script>
+	
+
+	<script type="text/javascript">
+	var color = {r:1.0,g:0.8,b:1.0};
+	
+	// SoundCloud API
+    function playMusic(myGenre, r, g, b) {
+      color.r = r;
+      color.g = g;
+      color.b = b;
+      SC.initialize({
+        client_id: 'a9440f3f19aee665b668f4cd4a56b4b9'
+      });
+
+      // find all tracks with the genre selected that have a tempo greater than 120 bpm.
+      SC.get('/tracks', {
+          genres: myGenre,
+          bpm: { from: 120 }
+          },
+          
+        function(tracks) {
+          var random = Math.floor(Math.random() * 49);
+          var track_url = tracks[random].permalink_url;
+
+          SC.oEmbed(track_url, {
+              auto_play: true,
+              color: "ffffff",
+              height: 70
+            },
+            document.getElementById("target"));
+        }
+      );
+      
+      currentProgram = createProgram( vertex_shader,fragment_shader );
+    
+    }
+	
+			var effectDiv, sourceDiv, canvas, gl, buffer, vertex_shader, fragment_shader, currentProgram,
+			vertex_position, parameters = { start_time: new Date().getTime(), time: 0, screenWidth: 0, screenHeight: 0 };
+
+	    window.onload = init;
+			
+			setInterval( loop, 1000 / 60 );
+
+			function init() {
+
+				vertex_shader = document.getElementById( 'vs' ).textContent;
+				fragment_shader = document.getElementById( 'fs' ).textContent;
+
+				canvas = document.getElementById('glscreen');
+
+				// initialise WebGL
+				try {
+					gl = canvas.getContext( 'experimental-webgl' );
+				} catch( error ) { }
+
+				if ( !gl ) {
+					alert("WebGL not supported");
+					throw "cannot create webgl context";
+				}
+
+				// create Vertex buffer (2 triangles)
+				buffer = gl.createBuffer();
+				gl.bindBuffer( gl.ARRAY_BUFFER, buffer );
+				gl.bufferData( gl.ARRAY_BUFFER, new Float32Array( [ - 1.0, - 1.0, 1.0, - 1.0, - 1.0, 1.0, 1.0, - 1.0, 1.0, 1.0, - 1.0, 1.0 ] ), gl.STATIC_DRAW );
+
+				// create program
+				currentProgram = createProgram( vertex_shader, fragment_shader );
+
+				onWindowResize();
+				window.addEventListener( 'resize', onWindowResize, false );
+			}
+
+			function createProgram( vertex, fragment ) {
+
+				var program = gl.createProgram();
+
+				var vs = createShader( vertex, gl.VERTEX_SHADER );
+				var fs = createShader( '#ifdef GL_ES\nprecision highp float;\n#endif\n\n' + fragment, gl.FRAGMENT_SHADER );
+
+				if ( vs == null || fs == null ) return null;
+
+				gl.attachShader( program, vs );
+				gl.attachShader( program, fs );
+
+				gl.deleteShader( vs );
+				gl.deleteShader( fs );
+
+				gl.linkProgram( program );
+
+				if ( !gl.getProgramParameter( program, gl.LINK_STATUS ) ) {
+
+					alert( "ERROR:\n" +
+					"VALIDATE_STATUS: " + gl.getProgramParameter( program, gl.VALIDATE_STATUS ) + "\n" +
+					"ERROR: " + gl.getError() + "\n\n" +
+					"- Vertex Shader -\n" + vertex + "\n\n" +
+					"- Fragment Shader -\n" + fragment );
+
+					return null;
+				}
+				return program;
+			}
+      
+      // create shader
+			function createShader( src, type ) {
+
+				var shader = gl.createShader( type );
+
+				gl.shaderSource( shader, src );
+				gl.compileShader( shader );
+
+				if ( !gl.getShaderParameter( shader, gl.COMPILE_STATUS ) ) {
+
+					alert( ( type == gl.VERTEX_SHADER ? "VERTEX" : "FRAGMENT" ) + " SHADER:\n" + gl.getShaderInfoLog( shader ) );
+					return null;
+				}
+				return shader;
+			}
+      
+      // resize fit to window
+			function onWindowResize( event ) {
+
+				canvas.width = window.innerWidth;
+				canvas.height = window.innerHeight;
+
+				parameters.screenWidth = canvas.width;
+				parameters.screenHeight = canvas.height;
+                
+                parameters.aspectX = canvas.width/canvas.height ;
+                parameters.aspectY = 1.0 ;
+
+				gl.viewport( 0, 0, canvas.width, canvas.height );
+			}
+
+      // time
+			function loop() {
+				if ( !currentProgram ) return;
+
+				parameters.time = new Date().getTime() - parameters.start_time;
+
+				gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
+
+				// Load program into GPU
+				gl.useProgram( currentProgram );
+
+				// Set values to program variables
+				gl.uniform1f( gl.getUniformLocation( currentProgram, 'time' ), parameters.time / 1000 );
+				gl.uniform2f( gl.getUniformLocation( currentProgram, 'resolution' ), parameters.screenWidth, parameters.screenHeight );
+				gl.uniform3f( gl.getUniformLocation( currentProgram, 'color' ), color.r, color.g, color.b);
+
+				// Render geometry
+				gl.bindBuffer( gl.ARRAY_BUFFER, buffer );
+				gl.vertexAttribPointer( vertex_position, 2, gl.FLOAT, false, 0, 0 );
+				gl.enableVertexAttribArray( vertex_position );
+				gl.drawArrays( gl.TRIANGLES, 0, 6 );
+				gl.disableVertexAttribArray( vertex_position );
+			}
+  </script>
+</head>
+
+<body>
+<canvas id="glscreen"></canvas>
+<div id="moods">
+<h1>I AM</h1>
+  <ul>
+    <li><a href="#" onclick="playMusic('disco', 1.1, 0.8, 1.2)">dancy</a></li>
+    <li><a href="#" onclick="playMusic('ambient', 0.5, 0.6, 1.2)">dreamy</a></li>
+    <li><a href="#" onclick="playMusic('rock', 2.0, 1.1, 1.5)">loud</a></li>
+    <li><a href="#" onclick="playMusic('piano', 0.5, 0.9, 0.8)">tired</a></li><br>
+    <li><a href="#" onclick="playMusic('hip hop', 0.5, 0.3, 0.6)">b4d</a></li>
+    <li><a href="#" onclick="playMusic('metal', 3.0, 0.9, 0.9)">angry</a></li>
+    <li><a href="#" onclick="playMusic('reggae', 0.6, 0.8, 1.1)">chill</a></li>
+    <li><a href="#" onclick="playMusic('world', 0.9, 1.1, 1.0)">adventurous</a></li>
+    <li><a href="#" onclick="playMusic('jazz', 1.5, 0.9, 0.5)">warm</a></li><br>
+    <li><a href="#" onclick="playMusic('drum & bass', 0.6, 1.5, 0.5)">jumpy</a></li>
+    <li><a href="#" onclick="playMusic('soul', 0.5, 0.6, 0.8)">deep</a></li>
+    <li><a href="#" onclick="playMusic('rap', 0.7, 0.6, 0.9)">whatever</a></li>
+    <li><a href="#" onclick="playMusic('r&b', 1.5, 0.5, 0.5)">sexy</a></li>
+    <li><a href="#" onclick="playMusic('jazz', 1.2, 0.9, 1.0)">loved</a></li>
+    <li><a href="#" onclick="playMusic('classical', 0.95, 0.5, 1.0)">not here</a></li>
+  </ul>
+  <br>
+  <br>
+<div id="target"></div>
+  </div>
+  </body>
+  <footer>
+    (if nothing happens, click again)
+    <p>&copy;2014 - Namira Abdulgani</p>
+  </footer>
+</html>
