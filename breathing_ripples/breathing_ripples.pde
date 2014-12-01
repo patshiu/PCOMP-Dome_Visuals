@@ -3,31 +3,30 @@ Serial myPort;
 boolean firstContact = false;
 
 float pulseVal; 
-FlowField colorField; 
-
+PImage rippleImg; 
 
 void setup() {
 
+	size(displayWidth, displayHeight);
 	//SERIAL STUFF
 	//println(Serial.list());// List all the available serial ports
 	pulseVal = 0; 
 	String portName = Serial.list()[3];
 	myPort = new Serial(this, portName, 9600);
 
-
-	size(600, 600);
-	//size(displayWidth, displayHeight);
-	colorField = new FlowField(); 	
-	fill(255);
+	rippleImg = loadImage("data/01_RippleImg_cropped.png");
+	
 }
 
 void draw() {
-
-
-	fill(color(80, 80, 80, 10));
-	rect(0, 0, width, height);
-	//colorField.init();
-	colorField.showColorField();		
+	fill(255, 10);
+	rect(0,0,width,height);
+	//display an image and scale it according to the value of pulseVal
+	pushMatrix();
+	translate(width/2, height/2); 
+	imageMode(CENTER);
+	image(rippleImg, 0, 0, pulseVal, pulseVal);
+	popMatrix();
 	
 }
 
@@ -51,8 +50,8 @@ void serialEvent(Serial myPort) {
     // if you have heard from the microcontroller, proceed:
     else {
       pulseVal = float(myString);
-      pulseVal = map(pulseVal, 125, 135, 10, 30);
-      pulseVal = constrain(pulseVal, 10, 30);
+      pulseVal = map(pulseVal, 125, 135, 320, 400);
+      pulseVal = constrain(pulseVal, 320, 400);
       //println(pulseVal);
       println(myString);
 

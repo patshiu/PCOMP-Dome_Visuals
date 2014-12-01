@@ -20,7 +20,7 @@ public class color_flow_field extends PApplet {
 Serial myPort;
 boolean firstContact = false;
 
-float pulseNum; 
+float pulseVal; 
 FlowField colorField; 
 
 
@@ -28,7 +28,7 @@ public void setup() {
 
 	//SERIAL STUFF
 	//println(Serial.list());// List all the available serial ports
-	pulseNum = 0; 
+	pulseVal = 0; 
 	String portName = Serial.list()[3];
 	myPort = new Serial(this, portName, 9600);
 
@@ -68,10 +68,10 @@ public void serialEvent(Serial myPort) {
     }
     // if you have heard from the microcontroller, proceed:
     else {
-      pulseNum = PApplet.parseFloat(myString);
-      pulseNum = map(pulseNum, 125, 135, 10, 30);
-      pulseNum = constrain(pulseNum, 10, 30);
-      //println(pulseNum);
+      pulseVal = PApplet.parseFloat(myString);
+      pulseVal = map(pulseVal, 125, 135, 10, 30);
+      pulseVal = constrain(pulseVal, 10, 30);
+      //println(pulseVal);
       println(myString);
 
     }
@@ -149,13 +149,13 @@ class FlowField {
 
 				//Draw the rectangle
 				ellipseMode(CENTER);
-				if( pulseNum <= 30){
+				if( pulseVal <= 30){
 					fill(currentColor, 120);
-					ellipse( locX + resolution/2, locY + resolution/2, pulseNum/2, pulseNum/2);
+					ellipse( locX + resolution/2, locY + resolution/2, pulseVal/2, pulseVal/2);
 					fill(currentColor, 20);
-					ellipse( locX + resolution/2, locY + resolution/2, pulseNum, pulseNum);
+					ellipse( locX + resolution/2, locY + resolution/2, pulseVal, pulseVal);
 					// fill(currentColor, 10);
-					// ellipse( locX + resolution/2, locY + resolution/2, pulseNum*2, pulseNum*2);
+					// ellipse( locX + resolution/2, locY + resolution/2, pulseVal*2, pulseVal*2);
 				}
 				//println( "i, j : " + i + " , " + j + "\t" + "locX, locY : " + locX + " , " + locY );
 			}

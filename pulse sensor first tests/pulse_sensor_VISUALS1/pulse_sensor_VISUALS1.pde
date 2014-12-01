@@ -1,7 +1,7 @@
 import processing.serial.*;
 Serial myPort;
 boolean firstContact = false;
-float pulseNum; 
+float pulseVal; 
 float r;
 float g;
 float b;
@@ -10,17 +10,17 @@ void setup () {
   size(800, 600);        // window size
   // List all the available serial ports
   println(Serial.list());
-  pulseNum = 0; 
+  pulseVal = 0; 
   String portName = Serial.list()[3];
   myPort = new Serial(this, portName, 9600);
 }
 
 void draw() {
   background(r, g, b,10);
-  pulseNum = map(pulseNum, 50, 150,200,100);
-  r=pulseNum/2;
-  g=pulseNum+10;
-  b=pulseNum+100;
+  pulseVal = map(pulseVal, 50, 150,200,100);
+  r=pulseVal/2;
+  g=pulseVal+10;
+  b=pulseVal+100;
 }
 
 void serialEvent(Serial myPort) {
@@ -41,7 +41,7 @@ void serialEvent(Serial myPort) {
     }
     // if you have heard from the microcontroller, proceed:
     else {
-      pulseNum = float(myString);
+      pulseVal = float(myString);
       println(myString);
     }
     // when you've parsed the data you have, ask for more:

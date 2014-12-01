@@ -1,13 +1,13 @@
 import processing.serial.*;
 Serial myPort;
 boolean firstContact = false;
-float pulseNum; 
+float pulseVal; 
 
 void setup () {
   size(800, 600);        // window size
   // List all the available serial ports
   println(Serial.list());
-  pulseNum = 0; 
+  pulseVal = 0; 
   String portName = Serial.list()[2];
   myPort = new Serial(this, portName, 9600);
 }
@@ -16,14 +16,14 @@ void draw() {
   fill(0, 50);
   rect(0, 0, width, height);
   //  translate( width/2, height/2 );
-  //  text(pulseNum, 0, 0);
+  //  text(pulseVal, 0, 0);
 
-  pulseNum = constrain(pulseNum, 80, 150);
+  pulseVal = constrain(pulseVal, 80, 150);
   translate( width/2, height/2 );
   noStroke();
   fill(#FF0000);
   ellipseMode(CENTER);
-  ellipse(0,0, pulseNum, pulseNum);
+  ellipse(0,0, pulseVal, pulseVal);
 }
 
 void serialEvent(Serial myPort) {
@@ -44,7 +44,7 @@ void serialEvent(Serial myPort) {
     }
     // if you have heard from the microcontroller, proceed:
     else {
-      pulseNum = float(myString);
+      pulseVal = float(myString);
       println(myString);
     }
     // when you've parsed the data you have, ask for more:
