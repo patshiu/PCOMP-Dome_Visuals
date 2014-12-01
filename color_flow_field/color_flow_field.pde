@@ -1,28 +1,37 @@
 import processing.serial.*;
 Serial myPort;
 boolean firstContact = false;
-float pulseNum; 
-float r;
-float g;
-float b;
 
-void setup () {
-  size(800, 600);        // window size
-  // List all the available serial ports
-  println(Serial.list());
-  pulseNum = 0; 
-  String portName = Serial.list()[3];
-  myPort = new Serial(this, portName, 9600);
+float pulseNum; 
+FlowField colorField; 
+
+
+void setup() {
+
+	//SERIAL STUFF
+	//println(Serial.list());// List all the available serial ports
+	pulseNum = 0; 
+	String portName = Serial.list()[3];
+	myPort = new Serial(this, portName, 9600);
+
+
+	size(600, 600);
+	//size(displayWidth, displayHeight);
+	colorField = new FlowField(); 	
+	fill(255);
 }
 
 void draw() {
-  background(r, g, b,10);
-  pulseNum = map(pulseNum, 50, 150,200,100);
-  r=pulseNum/2;
-  g=pulseNum+10;
-  b=pulseNum+100;
+
+
+	fill(color(80, 80, 80, 10));
+	rect(0, 0, width, height);
+	//colorField.init();
+	colorField.showColorField();		
+	
 }
 
+//SERIAL STUFF
 void serialEvent(Serial myPort) {
   // read the serial buffer:
   String myString = myPort.readStringUntil('\n');
@@ -42,10 +51,13 @@ void serialEvent(Serial myPort) {
     // if you have heard from the microcontroller, proceed:
     else {
       pulseNum = float(myString);
+      pulseNum = map(pulseNum, 125, 135, 10, 30);
+      pulseNum = constrain(pulseNum, 10, 30);
+      //println(pulseNum);
       println(myString);
+
     }
     // when you've parsed the data you have, ask for more:
     myPort.write("A");
   }
 }
-

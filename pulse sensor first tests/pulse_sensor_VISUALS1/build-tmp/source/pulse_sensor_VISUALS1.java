@@ -1,4 +1,22 @@
-import processing.serial.*;
+import processing.core.*; 
+import processing.data.*; 
+import processing.event.*; 
+import processing.opengl.*; 
+
+import processing.serial.*; 
+
+import java.util.HashMap; 
+import java.util.ArrayList; 
+import java.io.File; 
+import java.io.BufferedReader; 
+import java.io.PrintWriter; 
+import java.io.InputStream; 
+import java.io.OutputStream; 
+import java.io.IOException; 
+
+public class pulse_sensor_VISUALS1 extends PApplet {
+
+
 Serial myPort;
 boolean firstContact = false;
 float pulseNum; 
@@ -6,7 +24,7 @@ float r;
 float g;
 float b;
 
-void setup () {
+public void setup () {
   size(800, 600);        // window size
   // List all the available serial ports
   println(Serial.list());
@@ -15,7 +33,7 @@ void setup () {
   myPort = new Serial(this, portName, 9600);
 }
 
-void draw() {
+public void draw() {
   background(r, g, b,10);
   pulseNum = map(pulseNum, 50, 150,200,100);
   r=pulseNum/2;
@@ -23,7 +41,7 @@ void draw() {
   b=pulseNum+100;
 }
 
-void serialEvent(Serial myPort) {
+public void serialEvent(Serial myPort) {
   // read the serial buffer:
   String myString = myPort.readStringUntil('\n');
   // if you got any bytes other than the linefeed:
@@ -31,7 +49,7 @@ void serialEvent(Serial myPort) {
 
     myString = trim(myString);
 
-    // if you haven't heard from the microcontroller yet, listen:
+    // if you haven't heard from the microncontroller yet, listen:
     if (firstContact == false) {
       if (myString.equals("hello")) {
         myPort.clear();          // clear the serial port buffer
@@ -41,7 +59,7 @@ void serialEvent(Serial myPort) {
     }
     // if you have heard from the microcontroller, proceed:
     else {
-      pulseNum = float(myString);
+      pulseNum = PApplet.parseFloat(myString);
       println(myString);
     }
     // when you've parsed the data you have, ask for more:
@@ -49,3 +67,12 @@ void serialEvent(Serial myPort) {
   }
 }
 
+  static public void main(String[] passedArgs) {
+    String[] appletArgs = new String[] { "pulse_sensor_VISUALS1" };
+    if (passedArgs != null) {
+      PApplet.main(concat(appletArgs, passedArgs));
+    } else {
+      PApplet.main(appletArgs);
+    }
+  }
+}
