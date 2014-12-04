@@ -3,7 +3,7 @@
 
 public void stop() {
   // The doorbell object must close its sound.
-  close(heartbeat);
+  close(heartbeatpulse);
 
   super.stop();
 }
@@ -22,5 +22,5 @@ void close(AudioSnippet ringToClose){
 }
 
 void playSounds(){
-		ring(heartbeat);
+		ring(heartbeatpulse);
 }

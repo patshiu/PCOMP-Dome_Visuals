@@ -8,7 +8,7 @@ boolean firstContact = false;
 import ddf.minim.*;
 Minim minim; 
 
-AudioSnippet heartbeat;
+AudioSnippet heartbeatpulse;
 
 float pulseVal; 
 PImage rippleImg1; 
@@ -30,7 +30,7 @@ void setup() {
 	myPort = new Serial(this, portName, 9600);
 
 	minim = new Minim(this);
-	heartbeat = minim.loadSnippet("heartbeat.aif");
+	heartbeatpulse = minim.loadSnippet("data/heartbeat.aif");
 
 	rippleMode = 1; 
 	rippleImg1 = loadImage("data/01_RippleImg.png");

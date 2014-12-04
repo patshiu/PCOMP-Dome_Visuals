@@ -27,7 +27,7 @@ boolean firstContact = false;
 
 Minim minim; 
 
-AudioSnippet heartbeat;
+AudioSnippet heartbeatpulse;
 
 float pulseVal; 
 PImage rippleImg1; 
@@ -49,7 +49,7 @@ public void setup() {
 	myPort = new Serial(this, portName, 9600);
 
 	minim = new Minim(this);
-	heartbeat = minim.loadSnippet("heartbeat.aif");
+	heartbeatpulse = minim.loadSnippet("data/heartbeat.aif");
 
 	rippleMode = 1; 
 	rippleImg1 = loadImage("data/01_RippleImg.png");
@@ -182,7 +182,7 @@ public void serialEvent(Serial myPort) {
 
 public void stop() {
   // The doorbell object must close its sound.
-  close(heartbeat);
+  close(heartbeatpulse);
 
   super.stop();
 }
@@ -201,7 +201,7 @@ public void close(AudioSnippet ringToClose){
 }
 
 public void playSounds(){
-		ring(heartbeat);
+		ring(heartbeatpulse);
 }
   static public void main(String[] passedArgs) {
     String[] appletArgs = new String[] { "breathing_ripples" };
