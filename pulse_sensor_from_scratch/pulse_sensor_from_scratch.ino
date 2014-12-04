@@ -12,7 +12,7 @@ void loop() {
       // read the incoming byte:
       int inByte = Serial.read();
       // read the input on analog pin 0:
-      int sensorValue = analogRead(A0)/4;
+      int sensorValue = analogRead(A0);
       Serial.println(sensorValue);
       delay(2);
   }  
