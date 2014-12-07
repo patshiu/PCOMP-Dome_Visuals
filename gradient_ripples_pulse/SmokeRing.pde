@@ -30,7 +30,7 @@ class SmokeRing {
 		//Move to origin
 		translate(origin.x, origin.y);
 
-		float calculateTint = abs( cos( radians( constrain ( map( lifespan, 200, lifespanFull, 90, 270 ), 90, 270 ) ) ) ) * 255;
+		float calculateTint = abs( cos( radians( constrain ( map( lifespan, 200, lifespanFull, 90, 270 ), 90, 270 ) ) ) ) * 155;
 		pushStyle();
 		tint(255, calculateTint);
 		imageMode(CENTER);

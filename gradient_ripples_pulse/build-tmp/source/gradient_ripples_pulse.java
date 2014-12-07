@@ -4,7 +4,6 @@ import processing.event.*;
 import processing.opengl.*; 
 
 import processing.serial.*; 
-import ddf.minim.*; 
 
 import java.util.HashMap; 
 import java.util.ArrayList; 
@@ -22,13 +21,12 @@ public class gradient_ripples_pulse extends PApplet {
 Serial myPort;
 boolean firstContact = false;
 
-
 //SOUND
-
+/*import ddf.minim.*;
 Minim minim; 
 
 AudioSnippet heartbeat;
-
+*/
 
 //VISUALS
 ArrayList<SmokeRing> ringsArray; 
@@ -38,23 +36,27 @@ SmokeRing soloRing;
 
 float pulseVal; 
 PImage rippleImg; 
+float rippleTimer; 
 
 public void setup() {
 
+	size(displayWidth, displayHeight, P2D);
 	//SERIAL STUFF
-	println(Serial.list());// List all the available serial ports
+	//println(Serial.list());// List all the available serial ports
 	pulseVal = 0; 
+	rippleTimer = 0; 
 	String portName = Serial.list()[3];
+	println(portName);
 	myPort = new Serial(this, portName, 9600);
 
 
-	size(displayWidth, displayHeight, P2D);
+	
 	ringsArray = new ArrayList<SmokeRing>();
 	colorSmoosh = new GradientBackground();
 	//soloRing = new SmokeRing(width/2, height/2);
 
-	minim = new Minim(this);
-	heartbeat = minim.loadSnippet("heartbeat.aif");
+/*	minim = new Minim(this);
+	heartbeat = minim.loadSnippet("heartbeat.aif");*/
 	rippleImg = loadImage("data/ring.png");
 }
 
@@ -77,8 +79,14 @@ public void draw() {
 	noStroke();
 	pushStyle();
 	imageMode(CENTER);
+
+	//Reduce rippleTimer if necessary
+	if ( rippleTimer > 0 ){
+		rippleTimer--;
+		println("rippleTimer: " + rippleTimer);
+	}
 	//fill(rippleImgBackground);
-	//fill(255, 10);
+	fill(255, 10);
 	rect(0,0,width,height);
 	translate(width/2, height/2); 
 	image(rippleImg, 0, 0, pulseVal, pulseVal);
@@ -114,9 +122,11 @@ public void serialEvent(Serial myPort) {
       pulseVal = map(pulseVal, 500, 515, height*0.7f, height*0.8f);
       pulseVal = constrain(pulseVal, height*0.6f, height*0.9f);
 
-		if (pulseVal > height*0.75f){
+		if (pulseVal > height*0.8f && rippleTimer <= 0 ){
 			//println("playPulse"); 
-			playSounds();
+			/*playSounds();*/
+			rippleTimer = 10;
+			ringsArray.add(new SmokeRing(width/2, height/2)); 
 		}
       //println(pulseVal);
       println(myString);
@@ -211,7 +221,7 @@ class SmokeRing {
 		//Move to origin
 		translate(origin.x, origin.y);
 
-		float calculateTint = abs( cos( radians( constrain ( map( lifespan, 200, lifespanFull, 90, 270 ), 90, 270 ) ) ) ) * 255;
+		float calculateTint = abs( cos( radians( constrain ( map( lifespan, 200, lifespanFull, 90, 270 ), 90, 270 ) ) ) ) * 155;
 		pushStyle();
 		tint(255, calculateTint);
 		imageMode(CENTER);
@@ -278,7 +288,7 @@ class SmokeRing {
 	}
 
 }
-// Close the sound files
+/*// Close the sound files
 
 
 public void stop() {
@@ -288,7 +298,7 @@ public void stop() {
   super.stop();
 }
 
-public void ring(AudioSnippet ringToPlay) {
+void ring(AudioSnippet ringToPlay) {
 	if (!ringToPlay.isPlaying()) {
 	  // The ring() function plays the sound, as long as it is not already playing. 
 	  // rewind() ensures the sound starts from the beginning.
@@ -297,13 +307,13 @@ public void ring(AudioSnippet ringToPlay) {
 	}
 }
 
-public void close(AudioSnippet ringToClose){
+void close(AudioSnippet ringToClose){
 	ringToClose.close();
 }
 
-public void playSounds(){
+void playSounds(){
 		ring(heartbeat);
-}
+}*/
   static public void main(String[] passedArgs) {
     String[] appletArgs = new String[] { "gradient_ripples_pulse" };
     if (passedArgs != null) {

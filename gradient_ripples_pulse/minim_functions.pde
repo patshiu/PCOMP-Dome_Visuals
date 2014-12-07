@@ -1,4 +1,4 @@
-// Close the sound files
+/*// Close the sound files
 
 
 public void stop() {
@@ -23,4 +23,4 @@ void close(AudioSnippet ringToClose){
 
 void playSounds(){
 		ring(heartbeat);
-}
+}*/

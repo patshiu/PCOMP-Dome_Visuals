@@ -27,6 +27,7 @@ void setup() {
 	//println(Serial.list());// List all the available serial ports
 	pulseVal = 0; 
 	String portName = Serial.list()[3];
+	println(portName);
 	myPort = new Serial(this, portName, 9600);
 
 	minim = new Minim(this);
