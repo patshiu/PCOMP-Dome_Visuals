@@ -1,7 +1,7 @@
 //SOUND 
 import ddf.minim.*;
 
-Minim minim;
+Minim minim; 
 AudioSample heartbeat1;
 AudioSample heartbeat2;
 
@@ -18,34 +18,25 @@ boolean firstContact = false;
 
 void setup(){
   
-  size(512, 200, P3D);
+  size(512, 200, P2D);
   minim = new Minim(this);
   
   //SERIAL com
   pulseVal = 0; 
-  String portName = Serial.list()[2];
+  String portName = Serial.list()[3];
   myPort = new Serial(this, portName, 9600);
 
 
  // load files from  data folder
-heartbeat1 = minim.loadSample( "heartbeat35.mp3", // filename
-                          512      // buffer size
-                       );
-                         
-heartbeat2 = minim.loadSample( "heartbeat34.wav", // filename
-                          512      // buffer size
-                       );
-                       
-soundbed = minim.loadSample("soundbed1.wav", 512);
-
+  heartbeat1 = minim.loadSample( "data/heartbeat35.mp3", 512 );
+  heartbeat2 = minim.loadSample( "data/heartbeat38.wav", 512 );
+  soundbed = minim.loadSample("data/soundbed1.wav", 512);
 }
 
 void draw(){
- 
-
 }
 
-void serialEvent(Serial myPort) {
+/*void serialEvent(Serial myPort) {
   // read the serial buffer:
   String myString = myPort.readStringUntil('\n');
   // if you got any bytes other than the linefeed:
@@ -69,12 +60,10 @@ void serialEvent(Serial myPort) {
     // when you've parsed the data you have, ask for more:
     myPort.write("A");
   }
-}
+}*/
 
 void keyPressed() {
     if ( key == 's' ) soundbed.trigger();
     if ( key == 'h' ) heartbeat1.trigger();
-        if ( key == 'j' ) heartbeat2.trigger();
-
-
+    if ( key == 'j' ) heartbeat2.trigger();
 }

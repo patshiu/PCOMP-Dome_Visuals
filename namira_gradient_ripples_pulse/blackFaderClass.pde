@@ -35,6 +35,7 @@ class BlackFader {
 		//FADE IN
 		if (btnHit == 73){ //Hit key 'i' = keyCode 73 
 			visualsLive = true;
+			soundbed.trigger(); //play background sound
 			println("Lets get it started.");
 		}
 

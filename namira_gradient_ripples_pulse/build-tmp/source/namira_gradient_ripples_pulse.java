@@ -4,6 +4,7 @@ import processing.event.*;
 import processing.opengl.*; 
 
 import processing.serial.*; 
+import ddf.minim.*; 
 
 import java.util.HashMap; 
 import java.util.ArrayList; 
@@ -23,12 +24,15 @@ Serial myPort2;
 boolean firstContact1 = false;
 boolean firstContact2 = false;
 
-//SOUND
-/*import ddf.minim.*;
-Minim minim; 
+//SOUND 
 
-AudioSnippet heartbeat;
-*/
+
+Minim minim; 
+AudioSample heartbeat1;
+AudioSample heartbeat2;
+
+AudioSample soundbed;
+
 
 //VISUALS
 
@@ -70,10 +74,14 @@ public void setup() {
 	ringsArray = new ArrayList<SmokeRing>();
 	colorSmoosh = new GradientBackground();
 
-/*	minim = new Minim(this);
-	heartbeat = minim.loadSnippet("heartbeat.aif");*/
 	rippleImg = loadImage("data/ring2.png");
 	rippleImg2 = loadImage("data/ring3.png");
+
+	// load files from  data folder
+	minim = new Minim(this);
+	heartbeat1 = minim.loadSample( "data/heartbeat35.mp3", 512 );
+	heartbeat2 = minim.loadSample( "data/heartbeat38.wav", 512 );
+	soundbed = minim.loadSample("data/soundbed1.wav", 512);
 }
 
 public void draw() {
@@ -134,6 +142,10 @@ public void draw() {
 public void keyPressed() {
 	int btnHit = keyCode;
 	blackFader.listen(btnHit);
+
+    if ( key == 's' ) soundbed.trigger();
+    if ( key == 'h' ) heartbeat1.trigger();
+    if ( key == 'j' ) heartbeat2.trigger();
 }
 
 //SERIAL STUFF
@@ -165,6 +177,7 @@ public void readSerial1() {
 			//println("playPulse"); 
 			/*playSounds();*/
 			rippleTimer = 10;
+			heartbeat1.trigger();
 			ringsArray.add(new SmokeRing(width/2, height/2)); 
 		}
       //println(pulseVal);
@@ -204,6 +217,7 @@ public void readSerial2() {
 			//println("playPulse"); 
 			/*playSounds();*/
 			rippleTimer2 = 10;
+			heartbeat2.trigger();
 			ringsArray.add(new SmokeRing(width/2, height/2)); 
 		}
       //println(pulseVal);
@@ -404,6 +418,7 @@ class BlackFader {
 		//FADE IN
 		if (btnHit == 73){ //Hit key 'i' = keyCode 73 
 			visualsLive = true;
+			soundbed.trigger(); //play background sound
 			println("Lets get it started.");
 		}
 
