@@ -31,6 +31,9 @@ AudioSnippet heartbeat;
 */
 
 //VISUALS
+
+BlackFader blackFader;
+
 ArrayList<SmokeRing> ringsArray; 
 GradientBackground colorSmoosh;
 SmokeRing soloRing;
@@ -42,22 +45,25 @@ PImage rippleImg2;
 float rippleTimer; 
 float rippleTimer2; 
 
+
+
 public void setup() {
 
 	size(displayWidth, displayHeight, P2D);
 	//SERIAL STUFF
 	//println(Serial.list());// List all the available serial ports
+	blackFader = new BlackFader();
 	pulseVal = 0; 
 	rippleTimer = 0; 
 	pulseVal2 = 0; 
 	rippleTimer2 = 0; 
-	String portName1 = Serial.list()[3];
+/*	String portName1 = Serial.list()[3];
 	String portName2 = Serial.list()[4];
 	
 	myPort = new Serial(this, portName1, 9600);
 	myPort2 = new Serial(this, portName2, 9600);
 	println("Port 1: " + portName1);
-	println("Port 2: " + portName2);
+	println("Port 2: " + portName2);*/
 
 
 	
@@ -72,7 +78,7 @@ public void setup() {
 }
 
 public void draw() {
-
+	background(255);
 	colorSmoosh.display(); 
 	//soloRing.update();
 	for (int i = ringsArray.size()-1; i >= 0 ; i--){
@@ -103,17 +109,26 @@ public void draw() {
 		println("rippleTimer2: " + rippleTimer2);
 	}
 
-	readSerial1();
-	readSerial2();
+/*	readSerial1();
+	readSerial2();*/
 
 	//fill(rippleImgBackground);
 	fill(255, 10);
 	rect(0,0,width,height);
 	translate(width/2, height/2); 
 	image(rippleImg, 0, 0, pulseVal, pulseVal);
-	image(rippleImg2, 0, 0, pulseVal2, pulseVal2);
+	image(rippleImg2, 0, 0, pulseVal2, pulseVal2); 
 	popStyle();
 	popMatrix();
+
+
+	//FADE IN OR OUT OF BLACK
+	blackFader.overlayFader();
+}
+
+public void keyPressed() {
+	int btnHit = keyCode;
+	blackFader.listen(btnHit);
 }
 
 //Add ring on mouse press
@@ -353,6 +368,53 @@ class SmokeRing {
 	}
 
 }
+class BlackFader {
+	float blackFader; 
+	boolean visualsLive; 
+
+
+	BlackFader() {
+		blackFader = 255; 
+		visualsLive = false; 
+	}
+
+	public void overlayFader(){
+		//UPDATE FADER COUNT UP OR DOWN IF NEEDED
+		if (visualsLive == false){
+			if (blackFader < 255){
+				blackFader += 5;
+			}
+		}
+
+		if (visualsLive == true){
+			if (blackFader > 0){
+				blackFader -= 5;
+			}
+		}
+
+		//DRAW RECT BASED ON STATUS
+		pushStyle(); 
+		fill(0, blackFader);
+		rect(0, 0, width, height);
+		popStyle();
+	}
+
+	public void listen(int btnHit) {
+	//CHECK IF KEYS HAVE BEEN HIT, UPDATE STATUS IF NEEDED
+		//FADE IN
+		if (btnHit == 73){ //Hit key 'i' = keyCode 73 
+			visualsLive = true;
+			println("Lets get it started.");
+		}
+
+		//FADE OUT
+		if (btnHit == 79){
+			visualsLive = false; 
+			println("Lets get faded.");
+		}
+	}
+}
+
 /*// Close the sound files
 
 

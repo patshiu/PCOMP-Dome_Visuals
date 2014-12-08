@@ -22,6 +22,8 @@ public class breathing_ripples extends PApplet {
 Serial myPort;
 boolean firstContact = false;
 
+//BLACK FADER
+BlackFader blackFader; 
 
 //SOUND
 
@@ -45,9 +47,11 @@ public void setup() {
 	//SERIAL STUFF
 	//println(Serial.list());// List all the available serial ports
 	pulseVal = 0; 
-	String portName = Serial.list()[3];
+/*	String portName = Serial.list()[3];
 	println(portName);
-	myPort = new Serial(this, portName, 9600);
+	myPort = new Serial(this, portName, 9600);*/
+
+	blackFader = new BlackFader();
 
 	minim = new Minim(this);
 	heartbeatpulse = minim.loadSnippet("data/heartbeat.aif");
@@ -109,6 +113,7 @@ public void draw() {
 	}
 	popMatrix();
 	
+	blackFader.overlayFader();
 }
 
 
@@ -120,6 +125,9 @@ public void keyPressed(){
 	//DOWN - 40 
 	//LEFT - 37 
 	//RIGHT - 38
+	int btnHit = keyCode; 
+
+	blackFader.listen(btnHit);
 
 	if (rippleMode == 6 && keyCode == 38){
 		//change to 1 on increase
@@ -144,7 +152,7 @@ public void keyPressed(){
 }
 
 //SERIAL STUFF
-public void serialEvent(Serial myPort) {
+/*void serialEvent(Serial myPort) {
   // read the serial buffer:
   String myString = myPort.readStringUntil('\n');
   // if you got any bytes other than the linefeed:
@@ -162,11 +170,11 @@ public void serialEvent(Serial myPort) {
     }
     // if you have heard from the microcontroller, proceed:
     else {
-      pulseVal = PApplet.parseFloat(myString);
-      pulseVal = map(pulseVal, 500, 515, height*0.7f, height*0.8f);
-      pulseVal = constrain(pulseVal, height*0.6f, height*0.9f);
+      pulseVal = float(myString);
+      pulseVal = map(pulseVal, 500, 515, height*0.7, height*0.8);
+      pulseVal = constrain(pulseVal, height*0.6, height*0.9);
 
-		if (pulseVal > height*0.75f){
+		if (pulseVal > height*0.75){
 			//println("playPulse"); 
 			playSounds();
 		}
@@ -177,7 +185,55 @@ public void serialEvent(Serial myPort) {
     // when you've parsed the data you have, ask for more:
     myPort.write("A");
   }
+}*/
+class BlackFader {
+	float blackFader; 
+	boolean visualsLive; 
+
+
+	BlackFader() {
+		blackFader = 255; 
+		visualsLive = false; 
+	}
+
+	public void overlayFader(){
+		//UPDATE FADER COUNT UP OR DOWN IF NEEDED
+		if (visualsLive == false){
+			if (blackFader < 255){
+				blackFader += 5;
+			}
+		}
+
+		if (visualsLive == true){
+			if (blackFader > 0){
+				blackFader -= 5;
+			}
+		}
+
+		//DRAW RECT BASED ON STATUS
+		pushStyle(); 
+		noStroke();
+		fill(0, blackFader);
+		rect(0, 0, width, height);
+		popStyle();
+	}
+
+	public void listen(int btnHit) {
+	//CHECK IF KEYS HAVE BEEN HIT, UPDATE STATUS IF NEEDED
+		//FADE IN
+		if (btnHit == 73){ //Hit key 'i' = keyCode 73 
+			visualsLive = true;
+			println("Lets get it started.");
+		}
+
+		//FADE OUT
+		if (btnHit == 79){
+			visualsLive = false; 
+			println("Lets get faded.");
+		}
+	}
 }
+
 // Close the sound files
 
 

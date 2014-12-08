@@ -13,6 +13,9 @@ AudioSnippet heartbeat;
 */
 
 //VISUALS
+
+BlackFader blackFader;
+
 ArrayList<SmokeRing> ringsArray; 
 GradientBackground colorSmoosh;
 SmokeRing soloRing;
@@ -24,22 +27,25 @@ PImage rippleImg2;
 float rippleTimer; 
 float rippleTimer2; 
 
+
+
 void setup() {
 
 	size(displayWidth, displayHeight, P2D);
 	//SERIAL STUFF
 	//println(Serial.list());// List all the available serial ports
+	blackFader = new BlackFader();
 	pulseVal = 0; 
 	rippleTimer = 0; 
 	pulseVal2 = 0; 
 	rippleTimer2 = 0; 
-	String portName1 = Serial.list()[3];
+/*	String portName1 = Serial.list()[3];
 	String portName2 = Serial.list()[4];
 	
 	myPort = new Serial(this, portName1, 9600);
 	myPort2 = new Serial(this, portName2, 9600);
 	println("Port 1: " + portName1);
-	println("Port 2: " + portName2);
+	println("Port 2: " + portName2);*/
 
 
 	
@@ -54,7 +60,7 @@ void setup() {
 }
 
 void draw() {
-
+	background(255);
 	colorSmoosh.display(); 
 	//soloRing.update();
 	for (int i = ringsArray.size()-1; i >= 0 ; i--){
@@ -85,17 +91,26 @@ void draw() {
 		println("rippleTimer2: " + rippleTimer2);
 	}
 
-	readSerial1();
-	readSerial2();
+/*	readSerial1();
+	readSerial2();*/
 
 	//fill(rippleImgBackground);
 	fill(255, 10);
 	rect(0,0,width,height);
 	translate(width/2, height/2); 
 	image(rippleImg, 0, 0, pulseVal, pulseVal);
-	image(rippleImg2, 0, 0, pulseVal2, pulseVal2);
+	image(rippleImg2, 0, 0, pulseVal2, pulseVal2); 
 	popStyle();
 	popMatrix();
+
+
+	//FADE IN OR OUT OF BLACK
+	blackFader.overlayFader();
+}
+
+void keyPressed() {
+	int btnHit = keyCode;
+	blackFader.listen(btnHit);
 }
 
 //Add ring on mouse press

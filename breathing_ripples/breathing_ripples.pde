@@ -3,6 +3,8 @@ import processing.serial.*;
 Serial myPort;
 boolean firstContact = false;
 
+//BLACK FADER
+BlackFader blackFader; 
 
 //SOUND
 import ddf.minim.*;
@@ -26,9 +28,11 @@ void setup() {
 	//SERIAL STUFF
 	//println(Serial.list());// List all the available serial ports
 	pulseVal = 0; 
-	String portName = Serial.list()[3];
+/*	String portName = Serial.list()[3];
 	println(portName);
-	myPort = new Serial(this, portName, 9600);
+	myPort = new Serial(this, portName, 9600);*/
+
+	blackFader = new BlackFader();
 
 	minim = new Minim(this);
 	heartbeatpulse = minim.loadSnippet("data/heartbeat.aif");
@@ -90,6 +94,7 @@ void draw() {
 	}
 	popMatrix();
 	
+	blackFader.overlayFader();
 }
 
 
@@ -101,6 +106,9 @@ void keyPressed(){
 	//DOWN - 40 
 	//LEFT - 37 
 	//RIGHT - 38
+	int btnHit = keyCode; 
+
+	blackFader.listen(btnHit);
 
 	if (rippleMode == 6 && keyCode == 38){
 		//change to 1 on increase
@@ -125,7 +133,7 @@ void keyPressed(){
 }
 
 //SERIAL STUFF
-void serialEvent(Serial myPort) {
+/*void serialEvent(Serial myPort) {
   // read the serial buffer:
   String myString = myPort.readStringUntil('\n');
   // if you got any bytes other than the linefeed:
@@ -158,4 +166,4 @@ void serialEvent(Serial myPort) {
     // when you've parsed the data you have, ask for more:
     myPort.write("A");
   }
-}
+}*/
