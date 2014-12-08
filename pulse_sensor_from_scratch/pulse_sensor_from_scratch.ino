@@ -23,5 +23,5 @@ void establishContact() {
       Serial.println("hello");   // send a starting message
       delay(300);
    }
- }
+}
 
