@@ -177,7 +177,9 @@ public void readSerial1() {
 			//println("playPulse"); 
 			/*playSounds();*/
 			rippleTimer = 10;
-			heartbeat1.trigger();
+			if (blackFader.visualsLive == true){
+				heartbeat1.trigger();
+			}
 			ringsArray.add(new SmokeRing(width/2, height/2)); 
 		}
       //println(pulseVal);
@@ -217,7 +219,9 @@ public void readSerial2() {
 			//println("playPulse"); 
 			/*playSounds();*/
 			rippleTimer2 = 10;
-			heartbeat2.trigger();
+			if (blackFader.visualsLive == true){
+				heartbeat2.trigger();
+			}
 			ringsArray.add(new SmokeRing(width/2, height/2)); 
 		}
       //println(pulseVal);
@@ -419,12 +423,17 @@ class BlackFader {
 		if (btnHit == 73){ //Hit key 'i' = keyCode 73 
 			visualsLive = true;
 			soundbed.trigger(); //play background sound
+/*			heartbeat1.shiftVolume(-80, 10, 1000);
+			heartbeat2.shiftVolume(-80, 13, 1000);*/
+
 			println("Lets get it started.");
 		}
 
 		//FADE OUT
 		if (btnHit == 79){
 			visualsLive = false; 
+			heartbeat1.shiftVolume(10, -80, 1000);
+			heartbeat2.shiftVolume(13, -80, 1000);
 			println("Lets get faded.");
 		}
 	}

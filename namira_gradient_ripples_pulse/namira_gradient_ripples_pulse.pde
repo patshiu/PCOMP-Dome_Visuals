@@ -158,7 +158,9 @@ void readSerial1() {
 			//println("playPulse"); 
 			/*playSounds();*/
 			rippleTimer = 10;
-			heartbeat1.trigger();
+			if (blackFader.visualsLive == true){
+				heartbeat1.trigger();
+			}
 			ringsArray.add(new SmokeRing(width/2, height/2)); 
 		}
       //println(pulseVal);
@@ -198,7 +200,9 @@ void readSerial2() {
 			//println("playPulse"); 
 			/*playSounds();*/
 			rippleTimer2 = 10;
-			heartbeat2.trigger();
+			if (blackFader.visualsLive == true){
+				heartbeat2.trigger();
+			}
 			ringsArray.add(new SmokeRing(width/2, height/2)); 
 		}
       //println(pulseVal);
