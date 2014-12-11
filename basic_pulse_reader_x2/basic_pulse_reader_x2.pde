@@ -40,7 +40,7 @@ void setup() {
 	prevPulseVal2 = 0; 
 	lineAlpha = 0; 
 
-	DRAWINGSTYLE = 1; 
+	DRAWINGSTYLE = 2; 
 
 	masker = loadImage("data/mask.png");
 	
@@ -107,8 +107,8 @@ void draw() {
 		//draw pulse 1
 		pushMatrix(); 
 		translate(sweeper, height/2);
-		fill(255, 0, 0);
-		stroke(255, 0, 0);
+		fill(255, 0, 0, lineAlpha);
+		stroke(255, 0, 0, lineAlpha);
 		point(0, int(pulseVal1));
 		line(0, int(prevPulseVal1), 0, int(pulseVal1));
 		prevPulseVal1 = pulseVal1; 
@@ -117,8 +117,8 @@ void draw() {
 		//draw pulse2
 		pushMatrix();
 		translate(width - sweeper, height/2);
-		fill(0, 0, 255);
-		stroke(0, 0, 255);
+		fill(0, 0, 255, lineAlpha);
+		stroke(0, 0, 255, lineAlpha);
 		point(0, int(pulseVal2));
 		line(0, int(prevPulseVal2), 0, int(pulseVal2));
 		prevPulseVal2 = pulseVal2; 
