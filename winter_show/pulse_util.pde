@@ -1,0 +1,67 @@
+//UTIL 
+
+//Pulse read init
+//0. Reset all values
+//1. Read for 6 seconds where variance is less than X amount
+//2. If not less than X amount variance, poll again. If yes, 
+//3. Find the largest drop, set that as the threshold
+
+//Start Util 
+//pulse read init
+//fade in
+//play for 5 mins
+//fade out
+
+
+//GLOBAL STATE CONTROL 
+void setCurrentState( int state) {
+	if( state == 48 ||
+		state == 49 ||
+		state == 50 ||
+		state == 51 ||
+		state == 52 ){
+
+		switch (state) {
+			case 48:
+				currentState = 0; 
+				println("Current state is now " + currentState + ".");
+				break;
+
+			case 49:
+				currentState = 1; 
+				println("Current state is now " + currentState + ".");
+				break;
+
+			case 50:
+				currentState = 2; 
+				println("Current state is now " + currentState + ".");
+				break;
+			case 51:
+				currentState = 3; 
+				println("Current state is now " + currentState + ".");
+				break;
+
+			case 52:
+				currentState = 4; 
+				println("Current state is now " + currentState + ".");
+				break;
+		}
+	} else {
+		println("Invalid state. States are 0 through 4. ");
+	}	
+}
+
+//UI UTILS 
+
+void setLeftOrigin(float x, float y) {
+	leftOrigin.x = x; 
+	leftOrigin.y = y; 
+	println("Left Origin is now x:" + leftOrigin.x + "   y:" + leftOrigin.y + ".");
+}
+
+
+void setRightOrigin(float x, float y) {
+	rightOrigin.x = x; 
+	rightOrigin.y = y; 
+	println("Left Origin is now x:" + leftOrigin.x + "   y:" + leftOrigin.y + ".");
+}

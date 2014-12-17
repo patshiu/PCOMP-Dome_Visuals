@@ -12,7 +12,7 @@ void setup() {
 	//SERIAL STUFF
 	//println(Serial.list());// List all the available serial ports
 	pulseVal = 0; 
-	String portName = Serial.list()[3];
+	String portName = Serial.list()[2];
 	println(portName);
 	myPort = new Serial(this, portName, 9600);
 	sweeper = 0; 

@@ -42,13 +42,13 @@ void setup() {
 	rippleTimer = 0; 
 	pulseVal2 = 0; 
 	rippleTimer2 = 0; 
-	String portName1 = Serial.list()[3];
-	// String portName2 = Serial.list()[4];
+	String portName1 = Serial.list()[2];
+	String portName2 = Serial.list()[3];
 	
 	myPort = new Serial(this, portName1, 9600);
-	// myPort2 = new Serial(this, portName2, 9600);
+	myPort2 = new Serial(this, portName2, 9600);
 	println("Port 1: " + portName1);
-	// println("Port 2: " + portName2);
+	println("Port 2: " + portName2);
 
 
 	

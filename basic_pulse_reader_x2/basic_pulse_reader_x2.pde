@@ -23,10 +23,11 @@ float lineAlpha;
 
 void setup() {
 	size(displayWidth, displayHeight);
+        noCursor();
 	//SERIAL STUFF
-	//println(Serial.list());// List all the available serial ports
+        println(Serial.list());// List all the available serial ports
 	String portName1 = Serial.list()[3];
-	String portName2 = Serial.list()[4];
+	String portName2 = Serial.list()[2];
 	
 	myPort = new Serial(this, portName1, 9600);
 	myPort2 = new Serial(this, portName2, 9600);
@@ -67,7 +68,7 @@ void draw() {
 	if ( DRAWINGSTYLE == 1 ){
 		//draw pulse 1
 		pushMatrix(); 
-		translate(width/2 - sweeper, height/2);
+		translate(width/2 - sweeper, height*0.95);
 		fill(255, 0, 0, lineAlpha);
 		stroke(255, 0, 0, lineAlpha);
 		point(0, int(pulseVal1));
@@ -77,7 +78,7 @@ void draw() {
 
 		//draw pulse2
 		pushMatrix();
-		translate(width/2 + sweeper, height/2);
+		translate(width/2 + sweeper, height*0.95);
 		fill(0, 0, 255, lineAlpha);
 		stroke(0, 0, 255, lineAlpha);
 		point(0, int(pulseVal2));
@@ -106,7 +107,7 @@ void draw() {
 	if ( DRAWINGSTYLE == 2 ){
 		//draw pulse 1
 		pushMatrix(); 
-		translate(sweeper, height/2);
+		translate(sweeper, height*0.65);
 		fill(255, 0, 0, lineAlpha);
 		stroke(255, 0, 0, lineAlpha);
 		point(0, int(pulseVal1));
@@ -116,7 +117,7 @@ void draw() {
 
 		//draw pulse2
 		pushMatrix();
-		translate(width - sweeper, height/2);
+		translate(width - sweeper, height*0.65);
 		fill(0, 0, 255, lineAlpha);
 		stroke(0, 0, 255, lineAlpha);
 		point(0, int(pulseVal2));
