@@ -19,32 +19,60 @@ void setCurrentState( int state) {
 		state == 49 ||
 		state == 50 ||
 		state == 51 ||
-		state == 52 ){
+		state == 52 ||
+		state == 53 ){
 
 		switch (state) {
 			case 48:
 				currentState = 0; 
+				originReplotMode = true;
+				originLeftReplotted = false; 
+				originRightReplotted = false; 
 				println("Current state is now " + currentState + ".");
 				break;
 
 			case 49:
+				//1 - TITLE SCREEN
+				blackness = 255; 
+				expTimer = 1000;
 				currentState = 1; 
 				println("Current state is now " + currentState + ".");
 				break;
 
 			case 50:
+				//2 —  CALIBRATION MODE
 				currentState = 2; 
+				if ( liveMode == true ){
+					resetCalibration();
+				}
+				calibrationDone = false;
 				println("Current state is now " + currentState + ".");
 				break;
+
 			case 51:
+				//3 — PLAY VISUALS MODE
 				currentState = 3; 
+				blackness = 255; 
+				expTimer = 2800*1.2; // 3000 = 1 min
 				println("Current state is now " + currentState + ".");
 				break;
 
 			case 52:
+				//4 — 1 MINUTE UP NOTICE
 				currentState = 4; 
+				blackness = 10; 
+				expTimer = 500;
 				println("Current state is now " + currentState + ".");
 				break;
+			
+			case 53:
+				//1 - TITLE SCREEN
+				blackness = 255; 
+				expTimer = 1000;
+				currentState = 5; 
+				println("Current state is now " + currentState + ".");
+				break;
+
 		}
 	} else {
 		println("Invalid state. States are 0 through 4. ");

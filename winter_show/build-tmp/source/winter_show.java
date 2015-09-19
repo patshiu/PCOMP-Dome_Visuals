@@ -3,6 +3,8 @@ import processing.data.*;
 import processing.event.*; 
 import processing.opengl.*; 
 
+import processing.serial.*; 
+
 import java.util.HashMap; 
 import java.util.ArrayList; 
 import java.io.File; 
@@ -29,12 +31,36 @@ public class winter_show extends PApplet {
 // 3. Running State - Running visuals
 // 4. Ending State - Fade out, return to 1
 
+
+//********************
+//*** DEMO CONTROLLS
+//********************
+boolean liveMode = true; //liveMode true = using pulse sensors; false = using mouse
+boolean autoPilotMode = true; 
+boolean calibrationOverride = false; 
+boolean pulseRedWorking = false; 
+boolean pulseBlueWorking = false; 
+
+
+
+
 //GLOBAL UI CONTRLS 
 
 int currentState; 
 
 PVector leftOrigin = new PVector(0,0); 
 PVector rightOrigin = new PVector(0,0); 
+
+//GLOBAL UI SETUP
+PFont ProximaNova;
+PFont ProximaNovaBold;
+PFont ProximaNovaLight;
+
+boolean calibrationDone = false;
+boolean originReplotMode = false;
+boolean originLeftReplotted = false; 
+boolean originRightReplotted = false; 
+
 
 //IMAGE SETUP 
 PImage maskHard;
@@ -44,15 +70,57 @@ PImage redCrosshairs;
 PImage logo; 
 float gridAnimate;
 
+//MATH 
+float expTimer;
+float degClock; 
+
 
 //VISUAL VARIABLES
 int theBlue = 0xff00a8ff;
 int theRed = 0xfff05315;
 float animateSpeed; 
 float blackness; 
+float strokeWeightRed; 
+float strokeWeightBlue; 
+
+
+//SERIAL
+
+Serial myPort;
+Serial myPort2;
+boolean firstContact1 = false;
+boolean firstContact2 = false;
+
+float calibrationTimer; 
+
+
+float pulseVal1; 
+float pulseVal1Low; 
+float pulseVal1High; 
+float pulseVal1Diff; 
+float pulseVal1Threshold; 
+
+float pulseVal2; 
+float pulseVal2Low; 
+float pulseVal2High; 
+float pulseVal2Diff;  
+float pulseVal2Threshold; 
+
 
 public void setup() {
 	size(1024,768);
+	noCursor();
+
+	//Serial Setup
+    //println(Serial.list());// List all the available serial ports
+	String portName1 = Serial.list()[3];
+	String portName2 = Serial.list()[2];
+	
+	myPort = new Serial(this, portName1, 9600);
+	myPort2 = new Serial(this, portName2, 9600);
+	println("Port 1: " + portName1);
+	println("Port 2: " + portName2);
+
 
 	//background(0, 255, 0);\
 	background(0);
@@ -64,66 +132,175 @@ public void setup() {
 	logo = loadImage("data/pulse_logo.png");
 	animateSpeed = 0.05f; 
 	blackness = 255;
+	expTimer = 500; 
+	degClock = 360; 
 
 
-	//Setup Origns
+	//Setup Origins
 	setLeftOrigin( width*0.25f, 300+(height-300)*0.5f ); 
 	setRightOrigin( width*0.75f, 300+(height-300)*0.5f ); 
+
+	//Setup visuals variables
+	valuePlotter(); 
+
+	//Setup fonts
+	ProximaNovaLight = loadFont("ProximaNova-Light-12.vlw");
+	ProximaNova = loadFont("ProximaNova-Regular-12.vlw");
+	ProximaNovaBold = loadFont("ProximaNova-Semibold-20.vlw");
+
 }
 
 public void draw() {
 
+	valuePlotter();
+	radClock();
+
 	//THE MAIN SWITCHBOARD
 	switch(currentState) {
+
 		case 0:
-			println("Bitches be like 0.");
-			blackness = 255; 
+			//println("Bitches be like 2.");
+			textAlign(CENTER, TOP);
 			background(0);
-			animateGrid();
-			animateSpeed = 0.01f; 
-			drawGridWhite();
-			drawLogos();
-			image(maskSoft, 0, 0, width, height);
+			fill(255,100);
+			textFont(ProximaNovaBold, 12);
+			text("SET CENTER", leftOrigin.x, leftOrigin.y);
+			text("SET CENTER", rightOrigin.x, rightOrigin.y);
+			replotOrigin();
 			break;
 
+
 		case 1:
-			println("Bitches be like 1.");	
-			blackness = 255; 
+			//println("Bitches be like 0.");
+			//Animate fade in 
+			if (blackness > 0 ){
+				blackness -= 1;
+				//println("OPACITY : " + blackness);
+			}
+
+			if (autoPilotMode == true){
+				//COUNTDOWN
+				if (expTimer > 0 ){
+					expTimer -= 1;
+					println("COUNTDOWN : " + expTimer);
+				}
+
+				if (expTimer <= 0){
+					setCurrentState(51); //jump to visuals on auto pilot
+				}
+			}
+
 			background(0);
+			animateSpeed = 0.01f; 
 			animateGrid();
 			drawGridWhite();
-			drawCrosshairs();
+			drawLogos();
+			imageMode(CORNER);
 			image(maskSoft, 0, 0, width, height);
+			fill(0,blackness);
+			noStroke();
+			rect(0,0,width,height);
 			break;
 
 		case 2:
-			println("Bitches be like 2.");
+			//CALIBRATION MODE	
+			background(0);
+			animateSpeed = 0.01f; 
+			animateGrid();
+			drawGridWhite();
+			fill(0,50);
+			noStroke();
+			rect(0,0,width,height);
+			fill(255);
+			textFont(ProximaNovaBold, 12);
+			textAlign(CENTER, BOTTOM);
+			text("CALIBRATING", leftOrigin.x, leftOrigin.y);
+			text("CALIBRATING", rightOrigin.x, rightOrigin.y);
+			imageMode(CORNER);
+			image(maskSoft, 0, 0, width, height);
 
+			//2 \u2014 CALIBRATION MODE
+			if ( calibrationDone == false ) {
+				calibrateSensors(); 
+			}
+
+			if ( calibrationDone == true ) {
+				if ( blackness < 255 ){
+					blackness += 1;
+					//println("OPACITY : " + blackness);
+				}
+				fill(0,blackness);
+				noStroke();
+				rect(0,0,width,height);
+				if ( blackness >= 255 ){
+					setCurrentState(51); //jump to state 3
+				}
+			}
+			break;
+
+		case 3:
+			//3 \u2014 PLAY VISUALS MODE
 			//Animate fade in 
 			if (blackness > 10 ){
 				blackness -= 1;
-				println("OPACITY : " + blackness);
+				//println("OPACITY : " + blackness);
+			}
+
+			//COUNTDOWN
+			if (expTimer > 0 ){
+				expTimer -= 1;
+				println("COUNTDOWN : " + expTimer);
+			}
+
+			if (expTimer <= 0){
+				setCurrentState(52); //jump to state 4 when 3 mins up
 			}
 			animateGrid();
 			drawGrid1();
 			drawGrid2();
+			imageMode(CORNER);
 			image(maskSoft, 0, 0, width, height);
 			fill(0, blackness);
+			noStroke();
 			rect(0,0,width,height);
 			break;
 
-		case 3:
-			println("Bitches be like 3.");
-			blackness = 255; 
-			break;
-
 		case 4:
-			println("Bitches be like 4.");
-			blackness = 255; 
+			//4 \u2014 1 MINUTE UP NOTICE
+			if (blackness < 255 ){
+				blackness += 0.005f;
+				//println("OPACITY : " + blackness);
+			}
+
+			//COUNTDOWN
+			if (expTimer > 0 ){
+				expTimer -= 1;
+				println("COUNTDOWN : " + expTimer);
+			}
+
+			if (expTimer <= 0){
+				setCurrentState(49); //jump back to state 1 titles
+				blackness = 255;
+			}			
+
+			textAlign(CENTER, TOP);
+			fill(0, blackness);
+			noStroke();
+			rect(0,0,width,height);
+			fill(255,255-blackness-100);
+			textFont(ProximaNovaBold, 18);
+			text("1 MINUTE", leftOrigin.x, leftOrigin.y);
+			textFont(ProximaNova, 12);
+			text("pulse", leftOrigin.x, leftOrigin.y+20);
+
+			textFont(ProximaNovaBold, 18);
+			text("1 MINUTE", rightOrigin.x, rightOrigin.y);
+			textFont(ProximaNova, 12);
+			text("pulse", rightOrigin.x, rightOrigin.y+20);
 			break;
 
 		default:
-			println("Bitches be like that's cray.");
+			println("Bitches be like that shit cray. Reset plz.");
 			break;
 
 	}
@@ -135,8 +312,12 @@ public void draw() {
 
 public void keyTyped() {
 	// println("Key pressed is " + key);
-	// println("Key pressed is " + int(key));
-	setCurrentState(key);
+	// println("Key pressed is " + int(key));	
+	if ( key == 'o' || key == 'O' ) {
+		setCurrentState(48);
+	} else {
+		setCurrentState(key);
+	}
 }
 
 public void animateGrid() {
@@ -151,6 +332,139 @@ public void animateGrid() {
 //Draw pairs of lines that keep going away into the horizon 
 //Distort lines according to pulse val 
 
+public float radClock() {
+	if ( degClock > 0 ){
+		degClock -= 1; 
+	} else {
+		degClock = 360; 
+	}
+	println(degClock);
+	return radians(degClock);
+} 
+
+
+public void valuePlotter() {
+	if ( liveMode == false ){ //MOUSE MODE
+		// strokeWeightBlue = map(mouseX, 0, width, 0, 12) * cos(radClock());
+		// strokeWeightRed = map(mouseX, 0, width, 0, 12) * cos(radClock());
+			strokeWeightBlue = 6 * abs(cos(radClock()));
+			strokeWeightRed = 8 * abs(sin(radClock()));
+		if ( currentState == 3){
+			animateSpeed = 0.01f * constrain(abs(sin(radClock())), 0.2f, 1.0f); 
+			//println("Animate speed = " + animateSpeed);
+		}
+	}
+	else {
+
+		//BOOLEANS ARE FOR FALL BACK 
+		//IF EITHER SENSORS ARE WORKING 
+		if ( pulseRedWorking == true || pulseBlueWorking == true){
+			if ( pulseBlueWorking == true ){
+				readSerial1();
+				strokeWeightBlue =  map(pulseVal1, pulseVal1High, pulseVal1Low, 0, 12);
+				strokeWeightBlue = constrain(strokeWeightBlue, 0, 15);
+			} else {
+				readSerial2();
+				strokeWeightBlue = map(pulseVal2, pulseVal2High, pulseVal2Low, 0, 12);
+				strokeWeightBlue = constrain(strokeWeightRed, 0, 15);
+			}
+
+			if ( pulseRedWorking == true){
+				readSerial2();
+				strokeWeightRed = map(pulseVal2, pulseVal2High, pulseVal2Low, 0, 12);
+				strokeWeightRed = constrain(strokeWeightRed, 0, 15);
+			} else {
+				readSerial1();
+				strokeWeightRed =  map(pulseVal1, pulseVal1High, pulseVal1Low, 0, 12);
+				strokeWeightRed = constrain(strokeWeightBlue, 0, 15);
+			}
+		} else { //IF BOTH SENSORS NOT WORKING, USE AUTOIMAGES
+			strokeWeightBlue = 6 * abs(cos(radClock()));
+			strokeWeightRed = 8 * abs(sin(radClock()));
+			if ( currentState == 3){
+				animateSpeed = 0.01f * constrain(abs(sin(radClock())), 0.2f, 1.0f); 
+				//println("Animate speed = " + animateSpeed);
+			}
+		}
+
+		//float pulseDiff = abs(pulseVal1 - pulseVal2);
+
+		animateSpeed = 0.003f;
+		// animateSpeed = map(pulseDiff, 0, 5, 0, 0.01);
+		// animateSpeed = constrain(pulseDiff, 0, 0.1);
+	}
+}
+
+public void replotOrigin(){
+	if (originRightReplotted == false || originLeftReplotted == false){
+		println("NOW REPLOTTING ORIGINS");
+		cursor();
+		if(originRightReplotted == false || originLeftReplotted == false) {
+			if (mouseY > 300){
+				//if mouse in left zone
+
+				if (mouseX < width*0.5f){
+					  
+					imageMode(CENTER);
+					image(redCrosshairs, mouseX, mouseY);
+
+					if ( mousePressed == true){
+						leftOrigin.x = mouseX; 
+						leftOrigin.y = mouseY;
+						originLeftReplotted = true;
+						println("Origin left replotted."); 
+					}
+				}
+
+				//if mouse in right zone
+				if (mouseX > width*0.5f){  
+					imageMode(CENTER);
+					image(blueCrosshairs, mouseX, mouseY);
+
+					if ( mousePressed == true){
+						rightOrigin.x = mouseX; 
+						rightOrigin.y = mouseY; 
+						originRightReplotted = true; 
+						println("Origin right replotted."); 
+
+					}
+				}
+			} else {
+				//if mouse in left zone
+				if (mouseX < width*0.5f){
+					if ( mousePressed == true){
+						setLeftOrigin( width*0.25f, 300+(height-300)*0.5f );
+						originLeftReplotted = true;
+						println("Origin left replotted."); 
+					}
+				}
+				//if mouse in right zone
+				if (mouseX > width*0.5f){
+					if ( mousePressed == true){
+						setRightOrigin( width*0.75f, 300+(height-300)*0.5f );	
+						originRightReplotted = true;
+						println("Origin right replotted."); 
+
+					}
+				}
+			}
+		}
+
+		//display crosshair if origin fixed
+		if (originRightReplotted == true) {
+			image(blueCrosshairs, rightOrigin.x,  rightOrigin.y );
+		}	
+		if (originLeftReplotted == true) {
+			image(redCrosshairs, leftOrigin.x,  leftOrigin.y );
+		}	
+
+	} else {
+		originReplotMode = false; 
+		println("Done replotting.");
+		noCursor();
+		setCurrentState(49);
+	}
+}
 
 public void drawGrid1() {
 	pushMatrix();
@@ -174,8 +488,7 @@ public void drawGrid1() {
 		//Draw red line
 		//translate(0, gridHeight * gridAnimate); //Correct if starting
 		translate(0, gridAnimate * (gridNext-gridHeight));
-		float var = map(mouseX, 0, width, 0, 12);
-		strokeWeight(var);
+		strokeWeight(strokeWeightRed);
 		stroke(theRed, opacity * 0.6f);
 		line(0,0, width, 0);
 
@@ -208,8 +521,7 @@ public void drawGrid2() {
 		//Draw red line
 		//translate(0, gridHeight * gridAnimate); //Correct if starting
 		translate(0, -gridAnimate * (gridNext-gridHeight));
-		float var = map(mouseX, 0, width, 0, 12);
-		strokeWeight(var);
+		strokeWeight(strokeWeightBlue);
 		stroke(theBlue, opacity * 0.6f);
 		line(0,0, width, 0);
 
@@ -258,10 +570,20 @@ public void drawLogos() {
 	pushStyle();
 	imageMode(CENTER);
 	tint(255);
-	image(logo, leftOrigin.x, leftOrigin.y, 200, 50);
-	image(logo, rightOrigin.x, rightOrigin.y, 200, 50);
+
+	if ( autoPilotMode == true ){
+		//TO CALIBRATED ORIGIN
+		image(logo, leftOrigin.x, leftOrigin.y, 200, 50);
+		image(logo, rightOrigin.x, rightOrigin.y, 200, 50);
+
+	} else {
+		//TO TRUE ORIGIN / CHAIR
+		image(logo, width*0.25f, 300+(height-300)*0.5f, 200, 50);
+		image(logo, width*0.75f, 300+(height-300)*0.5f,  200, 50);		
+	}	
 	popStyle();
 }
+
 
 
 public void drawCrosshairs() {
@@ -323,25 +645,43 @@ public void setCurrentState( int state) {
 		switch (state) {
 			case 48:
 				currentState = 0; 
+				originReplotMode = true;
+				originLeftReplotted = false; 
+				originRightReplotted = false; 
 				println("Current state is now " + currentState + ".");
 				break;
 
 			case 49:
+				//1 - TITLE SCREEN
+				blackness = 255; 
+				expTimer = 1000;
 				currentState = 1; 
 				println("Current state is now " + currentState + ".");
 				break;
 
 			case 50:
+				//2 \u2014  CALIBRATION MODE
 				currentState = 2; 
+				if ( liveMode == true ){
+					resetCalibration();
+				}
+				calibrationDone = false;
 				println("Current state is now " + currentState + ".");
 				break;
+
 			case 51:
+				//3 \u2014 PLAY VISUALS MODE
 				currentState = 3; 
+				blackness = 255; 
+				expTimer = 2800*1.2f; // 3000 = 1 min
 				println("Current state is now " + currentState + ".");
 				break;
 
 			case 52:
+				//4 \u2014 1 MINUTE UP NOTICE
 				currentState = 4; 
+				blackness = 10; 
+				expTimer = 500;
 				println("Current state is now " + currentState + ".");
 				break;
 		}
@@ -364,6 +704,148 @@ public void setRightOrigin(float x, float y) {
 	rightOrigin.y = y; 
 	println("Left Origin is now x:" + leftOrigin.x + "   y:" + leftOrigin.y + ".");
 }
+//SERIAL STUFF
+
+
+//SERIAL #1
+public void readSerial1() {
+  // read the serial buffer:
+  String myString = myPort.readStringUntil('\n'); 
+
+  //HANDLE PORT 1
+  // if you got any bytes other than the linefeed:
+	if (myString != null) {
+
+	myString = trim(myString);
+
+		// if you haven't heard from the microcontroller yet, listen:
+		if (firstContact1 == false) {
+		  if (myString.equals("hello")) {
+		    myPort.clear();          // clear the serial port buffer
+		    firstContact1 = true;     // you've had first contact from the microcontroller
+		    myPort.write('A');       // ask for more
+		  }
+		}
+		// if you have heard from the microcontroller, proceed:
+		else {
+		  pulseVal1 = PApplet.parseFloat(myString);
+		  //pulseVal1 = map(pulseVal1, 500, 515, 0, height/10.0); 
+			}
+		  //println(pulseVal);
+		  //println("READING 1: " + myString);
+
+		// when you've parsed the data you have, ask for more:
+		myPort.write("A");
+	}
+}
+
+
+//SERIAL #2 
+public void readSerial2() {
+	String myString2 = myPort2.readStringUntil('\n');
+
+  //HANDLE PORT 2
+  if (myString2 != null) {
+
+    myString2 = trim(myString2);
+
+    // if you haven't heard from the microcontroller yet, listen:
+    if (firstContact2 == false) {
+      if (myString2.equals("hello")) {
+        myPort2.clear();          // clear the serial port buffer
+        firstContact2 = true;     // you've had first contact from the microcontroller
+        myPort2.write('A');       // ask for more
+      }
+    }
+    // if you have heard from the microcontroller, proceed:
+    else {
+		pulseVal2 = PApplet.parseFloat(myString2);
+		//pulseVal2 = map(pulseVal2, 500, 515, 0, height/10.0);
+		}
+      //println("READING 2: " + myString2);
+
+    // when you've parsed the data you have, ask for more:
+    myPort2.write("A");
+  }
+
+}
+
+
+//Remember to set timer and set findMinInit to false
+public void calibrateSensors() {
+
+	//Collect Data for 
+	if (calibrationTimer > 0){
+		calibrationTimer -= 1;
+		println("Calibration Countdown: " + calibrationTimer);
+		//Record Max Values
+		pulseVal1High = max(pulseVal1High, pulseVal1);
+		pulseVal2High = max(pulseVal2High, pulseVal2);
+		
+		pulseVal1Low = min(pulseVal1Low, pulseVal1);
+		pulseVal2Low = min(pulseVal2Low, pulseVal2);
+
+	}
+	if (calibrationTimer <= 0){
+		pulseVal1Diff = pulseVal1High - pulseVal1Low; 
+		pulseVal2Diff = pulseVal2High - pulseVal2Low; 
+		if ( pulseVal1Diff < 40 && pulseVal2Diff < 40 ){
+			pulseVal1Threshold = pulseVal1Low + pulseVal1Diff * 0.75f; 
+			pulseVal2Threshold = pulseVal2Low + pulseVal2Diff * 0.75f; 
+			calibrationDone = true;
+			println("CALIBRATION DONE");
+			println("------------------------");
+			println("------------------------");
+			println("Pulse 1 High : " + pulseVal1High);
+			println("Pulse 1 Low : " + pulseVal1Low);
+			println("Pulse 1 Diff : " + pulseVal1Diff);
+			println("Pulse 1 Threshold : " + pulseVal1Threshold);
+			println("------------------------");
+			println("Pulse 2 High : " + pulseVal2High);
+			println("Pulse 2 Low : " + pulseVal2Low);
+			println("Pulse 2 Diff : " + pulseVal2Diff);
+			println("Pulse 2 Threshold : " + pulseVal2Threshold);
+			println("------------------------");
+			println("------------------------");
+		} else {
+			println("Calibration needs to be re-run. Hit the 2 key. ");
+			println("------------------------");
+			println("------------------------");
+			println("Pulse 1 High : " + pulseVal1High);
+			println("Pulse 1 Low : " + pulseVal1Low);
+			println("Pulse 1 Diff : " + pulseVal1Diff);
+			println("Pulse 1 Threshold : " + pulseVal1Threshold);
+			println("------------------------");
+			println("Pulse 2 High : " + pulseVal2High);
+			println("Pulse 2 Low : " + pulseVal2Low);
+			println("Pulse 2 Diff : " + pulseVal2Diff);
+			println("Pulse 2 Threshold : " + pulseVal2Threshold);
+			println("------------------------");
+			println("------------------------");
+			if ( calibrationOverride == true || autoPilotMode == true ){
+				calibrationDone = true;
+			} else {
+				calibrationDone = false;
+			}
+		}
+	}
+		
+}
+
+public void resetCalibration() {
+	//Reset for calibration
+	calibrationTimer = 500; 
+
+	pulseVal1Low = 600; 
+	pulseVal1High = 0; 
+
+	pulseVal2Low = 600; 
+	pulseVal2High = 0; 
+
+	calibrationDone = false; 
+}
+
+
   static public void main(String[] passedArgs) {
     String[] appletArgs = new String[] { "winter_show" };
     if (passedArgs != null) {
